@@ -8,7 +8,6 @@ from esphome.const import (
     ICON_SIGNAL,
     ICON_FLASH,
     ICON_MOTION_SENSOR,
-    ICON_LIGHTBULB,
 )
 from . import CONF_LD2410S_ID, LD2410SComponent
 

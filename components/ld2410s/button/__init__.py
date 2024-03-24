@@ -5,9 +5,9 @@ from esphome.const import (
     ENTITY_CATEGORY_DIAGNOSTIC,
     ICON_DATABASE,
 )
-from .. import CONF_LD2410S_ID, LD2410SComponent, ld2410_ns
+from .. import CONF_LD2410S_ID, LD2410SComponent, ld2410s_ns
 
-QueryButton = ld2410_ns.class_("QueryButton", button.Button)
+QueryButton = ld2410s_ns.class_("QueryButton", button.Button)
 
 CONF_QUERY_PARAMS = "query_params"
 
