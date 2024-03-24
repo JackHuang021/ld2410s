@@ -1,4 +1,4 @@
-#include "ld2410.h"
+#include "ld2410s.h"
 
 #include <utility>
 #ifdef USE_NUMBER
@@ -12,18 +12,18 @@
 #define lowbyte(val) (uint8_t)((val) &0xff)
 
 namespace esphome {
-namespace ld2410 {
+namespace ld2410s {
 
-static const char *const TAG = "ld2410";
+static const char *const TAG = "ld2410s";
 
 static uint16_t two_byte_to_uint16(uint8_t firstbyte, uint8_t secondbyte) { 
   return (uint16_t) (secondbyte << 8) + firstbyte;
 }
 
-LD2410Component::LD2410Component() {}
+LD2410SComponent::LD2410SComponent() {}
 
-void LD2410Component::dump_config() {
-  ESP_LOGCONFIG(TAG, "LD2410:");
+void LD2410SComponent::dump_config() {
+  ESP_LOGCONFIG(TAG, "LD2410S:");
 #ifdef USE_BINARY_SENSOR
   LOG_BINARY_SENSOR("  ", "TargetBinarySensor", this->target_binary_sensor_);
   LOG_BINARY_SENSOR("  ", "MovingTargetBinarySensor", this->moving_target_binary_sensor_);
@@ -41,24 +41,24 @@ void LD2410Component::dump_config() {
 #ifdef USE_NUMBER
   LOG_NUMBER("  ", "TimeoutNumber", this->timeout_number_);
 #endif
-  this->read_all_info();
+  // this->read_all_info();
   ESP_LOGCONFIG(TAG, "  Firmware Version : %s", const_cast<char *>(this->version_.c_str()));
 }
 
-void LD2410Component::setup() {
+void LD2410SComponent::setup() {
   ESP_LOGCONFIG(TAG, "Setting up LD2410...");
   this->read_all_info();
   ESP_LOGCONFIG(TAG, "Firmware Version : %s", const_cast<char *>(this->version_.c_str()));
   ESP_LOGCONFIG(TAG, "LD2410 setup complete.");
 }
 
-void LD2410Component::read_all_info() {
+void LD2410SComponent::read_all_info() {
   this->set_config_mode_(true);
   this->get_version_();
   this->set_config_mode_(false);
 }
 
-void LD2410Component::loop() {
+void LD2410SComponent::loop() {
   const int max_line_length = 80;
   static uint8_t buffer[max_line_length];
 
@@ -67,7 +67,7 @@ void LD2410Component::loop() {
   }
 }
 
-void LD2410Component::send_command_(uint16_t command, const uint8_t *command_value, uint8_t command_value_len) {
+void LD2410SComponent::send_command_(uint16_t command, const uint8_t *command_value, uint8_t command_value_len) {
   ESP_LOGV(TAG, "Sending COMMAND %02X", command);
   // frame start bytes
   this->write_array(CMD_FRAME_HEADER, 4);
@@ -94,7 +94,7 @@ void LD2410Component::send_command_(uint16_t command, const uint8_t *command_val
   delay(50);  // NOLINT
 }
 
-void LD2410Component::handle_periodic_data_(uint8_t *buffer, int len) {
+void LD2410SComponent::handle_periodic_data_(uint8_t *buffer, int len) {
   /* check packet len */
   if (len < 5)
     return;  // 1 frame start bytes + 2 length data bytes + 1 frame end bytes
@@ -166,7 +166,7 @@ static std::string format_sn(uint8_t *buffer) {
 static void parse_common_parameters(uint8_t *buffer) {
 }
 
-bool LD2410Component::handle_ack_data_(uint8_t *buffer, int len) {
+bool LD2410SComponent::handle_ack_data_(uint8_t *buffer, int len) {
   /* check len */
   if (len < 10) {
     ESP_LOGE(TAG, "Error with last command : incorrect length");
@@ -255,7 +255,7 @@ bool LD2410Component::handle_ack_data_(uint8_t *buffer, int len) {
   return true;
 }
 
-void LD2410Component::readline_(int readch, uint8_t *buffer, int len) {
+void LD2410SComponent::readline_(int readch, uint8_t *buffer, int len) {
   static int pos = 0;
 
   if (readch >= 0) {
@@ -284,27 +284,27 @@ void LD2410Component::readline_(int readch, uint8_t *buffer, int len) {
   }
 }
 
-void LD2410Component::set_config_mode_(bool enable) {
+void LD2410SComponent::set_config_mode_(bool enable) {
   uint8_t cmd = enable ? CMD_ENABLE_CONF : CMD_DISABLE_CONF;
   uint8_t cmd_value[2] = {0x01, 0x00};
   this->send_command_(cmd, enable ? cmd_value : nullptr, 2);
 }
 
-void LD2410Component::query_parameters_() {
+void LD2410SComponent::query_parameters_() {
 }
 
-void LD2410Component::get_version_() {
+void LD2410SComponent::get_version_() {
 }
 
 #ifdef USE_NUMBER
-void LD2410Component::set_max_distances_timeout() {
+void LD2410SComponent::set_max_distances_timeout() {
 }
 
-void LD2410Component::set_gate_threshold(uint8_t gate) {
+void LD2410SComponent::set_gate_threshold(uint8_t gate) {
 
 }
 
 #endif
 
-}  // namespace ld2410
+}  // namespace ld2410s
 }  // namespace esphome
