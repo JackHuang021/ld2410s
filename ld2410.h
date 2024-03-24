@@ -34,24 +34,18 @@ namespace ld2410 {
 #define CHECK_BIT(var, pos) (((var) >> (pos)) & 1)
 
 // Commands
-static const uint8_t CMD_ENABLE_CONF = 0x00FF;
-static const uint8_t CMD_DISABLE_CONF = 0x00FE;
-static const uint8_t CMD_ENABLE_ENG = 0x0062;
-static const uint8_t CMD_DISABLE_ENG = 0x0063;
-static const uint8_t CMD_MAXDIST_DURATION = 0x0060;
-static const uint8_t CMD_QUERY = 0x0061;
-static const uint8_t CMD_GATE_SENS = 0x0064;
-static const uint8_t CMD_VERSION = 0x00A0;
-static const uint8_t CMD_QUERY_DISTANCE_RESOLUTION = 0x00AB;
-static const uint8_t CMD_SET_DISTANCE_RESOLUTION = 0x00AA;
-static const uint8_t CMD_QUERY_LIGHT_CONTROL = 0x00AE;
-static const uint8_t CMD_SET_LIGHT_CONTROL = 0x00AD;
-static const uint8_t CMD_SET_BAUD_RATE = 0x00A1;
-static const uint8_t CMD_BT_PASSWORD = 0x00A9;
-static const uint8_t CMD_MAC = 0x00A5;
-static const uint8_t CMD_RESET = 0x00A2;
-static const uint8_t CMD_RESTART = 0x00A3;
-static const uint8_t CMD_BLUETOOTH = 0x00A4;
+static const uint8_t CMD_SET_REPORT_MODE = 0x7A;
+static const uint8_t CMD_GET_FIRMWARE_VER = 0x00;
+static const uint8_t CMD_ENABLE_CONF = 0xFF;
+static const uint8_t CMD_DISABLE_CONF = 0xFE;
+static const uint8_t CMD_SET_SN = 0x10;
+static const uint8_t CMD_GET_SN = 0x11;
+static const uint8_t CMD_SET_COMMON_PARAMS = 0x70;
+static const uint8_t CMD_GET_COMMON_PARAMS = 0x71;
+static const uint8_t CMD_SET_TRIGGER_GATE_THRESHOLD = 0x72;
+static const uint8_t CMD_GET_TRIGGER_GATE_THRESHOLD = 0x73;
+static const uint8_t CMD_SET_STILL_GATE_THRESHOLD = 0x76;
+static const uint8_t CMD_GET_STILL_GATE_THRESHOLD = 0x77;
 
 enum BaudRateStructure : uint8_t {
   BAUD_RATE_9600 = 1,
@@ -114,20 +108,19 @@ Target states: 9th byte
     Detect distance: 16~17th bytes
 */
 enum PeriodicDataStructure : uint8_t {
-  DATA_TYPES = 6,
-  TARGET_STATES = 8,
-  MOVING_TARGET_LOW = 9,
-  MOVING_TARGET_HIGH = 10,
-  MOVING_ENERGY = 11,
-  STILL_TARGET_LOW = 12,
-  STILL_TARGET_HIGH = 13,
-  STILL_ENERGY = 14,
-  DETECT_DISTANCE_LOW = 15,
-  DETECT_DISTANCE_HIGH = 16,
-  MOVING_SENSOR_START = 19,
-  STILL_SENSOR_START = 28,
-  LIGHT_SENSOR = 37,
-  OUT_PIN_SENSOR = 38,
+  TARGET_STATES = 2,
+  MOVING_TARGET_LOW = 3,
+  MOVING_TARGET_HIGH = 4,
+  // MOVING_ENERGY = 11,
+  // STILL_TARGET_LOW = 12,
+  // STILL_TARGET_HIGH = 13,
+  // STILL_ENERGY = 14,
+  // DETECT_DISTANCE_LOW = 15,
+  // DETECT_DISTANCE_HIGH = 16,
+  // MOVING_SENSOR_START = 19,
+  // STILL_SENSOR_START = 28,
+  // LIGHT_SENSOR = 37,
+  // OUT_PIN_SENSOR = 38,
 };
 enum PeriodicDataValue : uint8_t { HEAD = 0XAA, END = 0x55, CHECK = 0x00 };
 
@@ -151,7 +144,9 @@ class LD2410Component : public Component, public uart::UARTDevice {
 #endif
 #ifdef USE_TEXT_SENSOR
   SUB_TEXT_SENSOR(version)
-  SUB_TEXT_SENSOR(mac)
+  SUB_TEXT_SENSOR(sn)
+  SUB_TEXT_SENSOR(report_mode)
+  SUB_TEXT_SENSOR(detecion_speed)
 #endif
 #ifdef USE_SELECT
   SUB_SELECT(distance_resolution)
@@ -169,10 +164,11 @@ class LD2410Component : public Component, public uart::UARTDevice {
   SUB_BUTTON(query)
 #endif
 #ifdef USE_NUMBER
-  SUB_NUMBER(max_still_distance_gate)
-  SUB_NUMBER(max_move_distance_gate)
+  SUB_NUMBER(max_distance)
+  SUB_NUMBER(min_distance)
   SUB_NUMBER(timeout)
-  SUB_NUMBER(light_threshold)
+  SUB_NUMBER(state_report_freq)
+  SUB_NUMBER(distance_report_freq)
 #endif
 
  public:
@@ -203,7 +199,7 @@ class LD2410Component : public Component, public uart::UARTDevice {
 
  protected:
   int two_byte_to_int_(char firstbyte, char secondbyte) { return (int16_t) (secondbyte << 8) + firstbyte; }
-  void send_command_(uint8_t command_str, const uint8_t *command_value, int command_value_len);
+  void send_command_(uint16_t command_str, const uint8_t *command_value, uint8_t command_value_len);
   void set_config_mode_(bool enable);
   void handle_periodic_data_(uint8_t *buffer, int len);
   bool handle_ack_data_(uint8_t *buffer, int len);
@@ -219,7 +215,7 @@ class LD2410Component : public Component, public uart::UARTDevice {
   int32_t last_engineering_mode_change_millis_ = millis();
   uint16_t throttle_;
   std::string version_;
-  std::string mac_;
+  std::string sn_;
   std::string out_pin_level_;
   std::string light_function_;
   float light_threshold_ = -1;
