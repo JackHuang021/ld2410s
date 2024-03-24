@@ -4,8 +4,6 @@ import esphome.config_validation as cv
 from esphome.const import (
     DEVICE_CLASS_MOTION,
     DEVICE_CLASS_OCCUPANCY,
-    DEVICE_CLASS_PRESENCE,
-    ENTITY_CATEGORY_DIAGNOSTIC,
     ICON_MOTION_SENSOR,
     ICON_ACCOUNT,
 )
